@@ -112,6 +112,12 @@ config:
         preferred_ip_protocol: "ip4"
         tls_config:
           insecure_skip_verify: false
+    ssh_banner:
+      prober: tcp
+      tcp:
+        query_response:
+        - expect: "^SSH-2.0-"
+        - send: "OpenSSH_8.2p1-blackbox-ssh-check"
       
 
 # Set custom config path, other than default /config/blackbox.yaml. If let empty, path will be "/config/blackbox.yaml"

@@ -30,7 +30,7 @@ serviceAccounts:
 alertmanager:
   ## If false, alertmanager will not be installed
   ##
-  enabled: true
+  enabled: false
 
   ## Use a ClusterRole (and ClusterRoleBinding)
   ## - If set to false - we define a Role and RoleBinding in the defined namespaces ONLY
@@ -43,13 +43,6 @@ alertmanager:
   ## alertmanager container name
   ##
   name: alertmanager
-
-  ## alertmanager container image
-  ##
-  image:
-    repository: quay.io/prometheus/alertmanager
-    tag: v0.23.0
-    pullPolicy: IfNotPresent
 
   ## alertmanager priorityClassName
   ##
@@ -460,7 +453,7 @@ kubeStateMetrics:
 nodeExporter:
   ## If false, node-exporter will not be installed
   ##
-  enabled: false
+  enabled: true
 
   ## If true, node-exporter pods share the host network namespace
   ##
@@ -652,13 +645,6 @@ server:
   #   ...
   #
   sidecarTemplateValues: {}
-
-  ## Prometheus server container image
-  ##
-  image:
-    repository: quay.io/prometheus/prometheus
-    tag: v2.31.1
-    pullPolicy: IfNotPresent
 
   ## prometheus server priorityClassName
   ##
@@ -912,7 +898,7 @@ server:
     ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
     ##   GKE, AWS & OpenStack)
     ##
-    # storageClass: "-"
+    storageClass: "hostpath-volumes"
 
     ## Prometheus server data Persistent Volume Binding Mode
     ## If defined, volumeBindingMode: <volumeBindingMode>
@@ -1792,6 +1778,25 @@ extraScrapeConfigs: |
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter-prometheus-blackbox-exporter:9115
+  - job_name: 'ssh-check'
+    metrics_path: /probe
+    params:
+      module: [ssh_banner]
+    static_configs:
+      - targets:
+        - 192.168.1.192  # Targets to probe
+    relabel_configs:
+      # Ensure port is 22, pass as URL parameter
+      - source_labels: [__address__]
+        regex: (.*?)(:.*)?
+        replacement: ${1}:22
+        target_label: __param_target
+      # Make instance label the target
+      - source_labels: [__param_target]
+        target_label: instance
+      # Actually talk to the blackbox exporter though
       - target_label: __address__
         replacement: blackbox-exporter-prometheus-blackbox-exporter:9115
 

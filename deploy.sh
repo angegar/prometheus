@@ -1,11 +1,10 @@
 #!/bin/bash
 
 function add_repo {
-    local repo_name $1
-    local repo_url $2
+    local repo_name="$1"
+    local repo_url="$2"
     
     repos=$(helm repo list | grep "$repo_name" )
-
     if [ -z $repos ]; then
         helm repo add "$repo_name" "$repo_url"
     fi
